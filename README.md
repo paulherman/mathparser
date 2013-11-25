@@ -1,6 +1,7 @@
 Math Parser
 ========
 The C++ can be used as an include library.
+
 PHP example of how to use:
  *   $expression = "square(e^t + 2)";
  *   $parser = new CMParser();
