@@ -1,12 +1,15 @@
 type Value = Float
 type Variable = String
 type Function = String
+type FunctionDef = [Value] -> Value
 type Operator = String
+type OperatorDef = Value -> Value -> Value
 data Associativity = Left | Right deriving (Eq, Ord)
-type OpEnvironment = [(Operator, Value -> Value -> Value, Associativity)]
+type OpEnvironment = [(Operator, OperatorDef, Associativity)]
 type VarEnvironment = [(Variable, Value)]
-type FunEnvironment = [(Function, [Value] -> Value)]
+type FunEnvironment = [(Function, FunctionDef)]
 data Expression = Val Value | Var Variable | Fun Function [Expression] | Op Operator Expression Expression
+type Parse a = String -> Maybe (a, String)
 
 instance Show Expression where
 	show (Val x) = show x
@@ -28,10 +31,10 @@ evaluate varEnv opEnv funEnv (Op op x y) = (opEnvGet opEnv op) (evalEnv x) (eval
 funEnvEmpty :: FunEnvironment
 funEnvEmpty = []
 
-funEnvSet :: FunEnvironment -> Function -> ([Value] -> Value) -> FunEnvironment
+funEnvSet :: FunEnvironment -> Function -> FunctionDef -> FunEnvironment
 funEnvSet funEnv name f = (name, f) : filter (\(n, f) -> n /= name) funEnv
 
-funEnvGet :: FunEnvironment -> Function -> ([Value] -> Value)
+funEnvGet :: FunEnvironment -> Function -> FunctionDef
 funEnvGet funEnv name
 	| null fs = error "Function not in environment"
 	| otherwise = (snd . head) fs
@@ -40,10 +43,10 @@ funEnvGet funEnv name
 opEnvEmpty :: OpEnvironment
 opEnvEmpty = []
 
-opEnvSet :: OpEnvironment -> Operator -> (Value -> Value -> Value) -> Associativity -> OpEnvironment
+opEnvSet :: OpEnvironment -> Operator -> OperatorDef -> Associativity -> OpEnvironment
 opEnvSet opEnv name op assoc = (name, op, assoc) : filter (\(n, v, a) -> n /= name) opEnv
 
-opEnvGet :: OpEnvironment -> Operator -> (Value -> Value -> Value)
+opEnvGet :: OpEnvironment -> Operator -> OperatorDef
 opEnvGet opEnv name
 	| null ops = error "Operator not in environment"
 	| otherwise = (getOpFun . head) ops
