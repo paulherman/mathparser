@@ -1,3 +1,5 @@
+import Data.Char
+
 type Value = Float
 type Variable = String
 type Function = String
@@ -72,3 +74,23 @@ varEnvGet varEnv name
 	| null vars = error "Variable not in environment"
 	| otherwise = (snd . head) vars
 	where vars = filter (\(n, v) -> n == name) varEnv
+
+spot :: (Char -> Bool) -> Parse Char
+spot p [] = Nothing
+spot p (x : xs)
+	| p x = Just (x, xs)
+	| otherwise = Nothing
+
+-- Combines parsers
+(^^^) :: Parse a -> Parse b -> Parse (a, b)
+(^^^) p1 p2 input = case p1 input of
+		Nothing -> Nothing
+		Just (v, input') -> case p2 input' of
+			Nothing -> Nothing
+			Just (u, ys) -> Just ((v, u), ys)
+
+-- Applies function to parser
+(>>>) :: Parse a -> (a -> b) -> Parse b
+(>>>) p f input = case p input of
+	Nothing -> Nothing
+	Just (v, input') -> Just (f v, input')
