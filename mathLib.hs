@@ -75,11 +75,15 @@ varEnvGet varEnv name
 	| otherwise = (snd . head) vars
 	where vars = filter (\(n, v) -> n == name) varEnv
 
+-- Checks if the front of input satisfies condition
 spot :: (Char -> Bool) -> Parse Char
 spot p [] = Nothing
 spot p (x : xs)
 	| p x = Just (x, xs)
 	| otherwise = Nothing
+
+-- Checks if front of input is character
+token c = spot (== c)
 
 -- Combines parsers
 (^^^) :: Parse a -> Parse b -> Parse (a, b)
@@ -94,3 +98,9 @@ spot p (x : xs)
 (>>>) p f input = case p input of
 	Nothing -> Nothing
 	Just (v, input') -> Just (f v, input')
+
+-- Trial application of parsers
+(|||) :: Parse a -> Parse a -> Parse a
+(|||) p1 p2 input = case p1 input of
+	Nothing -> p2 input
+	Just (v, input') -> Just (v, input')
